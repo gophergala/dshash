@@ -12,11 +12,21 @@ func getHandler(c appengine.Context, w http.ResponseWriter, r *http.Request, _ h
 	person.Handler = "chischaschos"
 	bytes, err := person.Marshal()
 
-	person.Locations = RetrieveLocations(person)
+	if err != nil {
+		panic(err)
+	}
+
+	s := PersonsService{
+		PersonRepository: PersonRepository{c},
+	}
+
+	locations, err := s.GetAll(person)
 
 	if err != nil {
 		panic(err)
 	}
+
+	person.Locations = locations
 
 	_, err = w.Write(bytes)
 
@@ -35,23 +45,26 @@ func postHandler(c appengine.Context, w http.ResponseWriter, r *http.Request, _ 
 	}
 
 	person := &Person{}
-	err = person.Unmarshal(bodyBytes)
+
+	if err := person.Unmarshal(bodyBytes); err != nil {
+		panic(err)
+	}
+
+	s := PersonsService{
+		PersonRepository: PersonRepository{c},
+	}
+
+	if err := s.Save(person); err != nil {
+		panic(err)
+	}
+
+	bytes, err := person.Marshal()
 
 	if err != nil {
 		panic(err)
 	}
 
-	storedPerson := StorePerson(person)
-
-	bytes, err := storedPerson.Marshal()
-
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = w.Write(bytes)
-
-	if err != nil {
+	if _, err := w.Write(bytes); err != nil {
 		panic(err)
 	}
 }
