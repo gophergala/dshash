@@ -7,23 +7,6 @@ import (
 	"net/http"
 )
 
-type WebContextHandler func(appengine.Context, http.ResponseWriter, *http.Request, httprouter.Params)
-
-func HandlerWithContext(h WebContextHandler) httprouter.Handle {
-	f := func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		h(appengine.NewContext(r), w, r, ps)
-	}
-
-	return httprouter.Handle(f)
-}
-func init() {
-	router := httprouter.New()
-	router.GET("/locations/:handler", HandlerWithContext(getHandler))
-	router.POST("/locations", HandlerWithContext(postHandler))
-
-	http.Handle("/", router)
-}
-
 func getHandler(c appengine.Context, w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	person := &Person{}
 	person.Handler = "chischaschos"
